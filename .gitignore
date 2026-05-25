@@ -1,0 +1,28 @@
+# Python build and cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+.cache/
+
+# ROS2 build/install/log directories (in case built inside package)
+build/
+install/
+log/
+
+# IDEs, editors and OS metadata
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Backup files
+*.backup
+*.bak
+
+# Log files
+*.log
