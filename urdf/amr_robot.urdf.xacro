@@ -1,24 +1,34 @@
 <?xml version="1.0"?>
 <robot name="amr_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <!-- ═══════════════════════════════════════════════
-       LINOROBOT2 2WD DIMENSIONS
-       base_link is the ROOT — no dummy base_footprint
-       base_footprint published via static TF in launch
-       ═══════════════════════════════════════════════ -->
-  <xacro:property name="base_l"      value="0.265"/>
-  <xacro:property name="base_w"      value="0.265"/>
-  <xacro:property name="base_h"      value="0.130"/>
-  <xacro:property name="base_mass"   value="10.0"/>
-  <xacro:property name="wheel_r"     value="0.0425"/>
-  <xacro:property name="wheel_t"     value="0.018"/>
-  <xacro:property name="wheel_mass"  value="0.5"/>
-  <xacro:property name="wheel_sep"   value="0.28"/>
-  <xacro:property name="caster_r"    value="0.015"/>
+  <xacro:property name="base_l"     value="0.265"/>
+  <xacro:property name="base_w"     value="0.265"/>
+  <xacro:property name="base_h"     value="0.130"/>
+  <xacro:property name="base_mass"  value="10.0"/>
+  <xacro:property name="wheel_r"    value="0.0425"/>
+  <xacro:property name="wheel_t"    value="0.018"/>
+  <xacro:property name="wheel_mass" value="0.5"/>
+  <xacro:property name="wheel_sep"  value="0.28"/>
+  <xacro:property name="caster_r"   value="0.015"/>
 
   <!-- ═══════════════════════════════════════════════
-       BASE LINK — root link, has mass and inertia
+       TF CHAIN:
+       odom → base_footprint → base_link → sensors
+       
+       base_footprint: on the ground (z=0)
+       base_link: center at wheel_r above ground
+       wheel joints: at z=0 relative to base_link
+         (wheel axle = base_link center = wheel_r above ground)
        ═══════════════════════════════════════════════ -->
+
+  <!-- <link name="base_footprint"/>
+
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child  link="base_link"/>
+    <origin xyz="0 0 ${wheel_r}" rpy="0 0 0"/>
+  </joint> -->
+
   <link name="base_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -47,9 +57,6 @@
     </inertial>
   </link>
 
-  <!-- ═══════════════════════════════════════════════
-       TOP DECK
-       ═══════════════════════════════════════════════ -->
   <link name="top_deck">
     <visual>
       <geometry>
@@ -77,9 +84,6 @@
     <origin xyz="0 0 ${base_h/2+0.003}" rpy="0 0 0"/>
   </joint>
 
-  <!-- ═══════════════════════════════════════════════
-       ARM MOUNT — Phase 3 arm bolts here
-       ═══════════════════════════════════════════════ -->
   <link name="arm_mount">
     <visual>
       <geometry>
@@ -108,11 +112,14 @@
   </joint>
 
   <!-- ═══════════════════════════════════════════════
-       LEFT WHEEL
+       WHEELS
+       Z=0 relative to base_link because:
+       base_link center = wheel_r above ground
+       wheel axle = wheel_r above ground
+       therefore wheel axle Z offset from base_link = 0
        ═══════════════════════════════════════════════ -->
   <link name="left_wheel">
     <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
         <cylinder radius="${wheel_r}" length="${wheel_t}"/>
       </geometry>
@@ -121,7 +128,6 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
         <cylinder radius="${wheel_r}" length="${wheel_t}"/>
       </geometry>
@@ -137,27 +143,24 @@
     </inertial>
   </link>
 
-  <joint name="left_wheel_joint" type="continuous">
+<joint name="left_wheel_joint" type="continuous">
     <parent link="base_link"/>
-    <child  link="left_wheel"/>
+    <child link="left_wheel"/>
     <origin xyz="0 ${wheel_sep/2} ${-base_h/2+wheel_r}" rpy="${pi/2} 0 0"/>
-    <axis xyz="0 0 -1"/>
+    <axis xyz="0 1 0"/>
     <dynamics damping="0.1" friction="0.1"/>
   </joint>
 
-  <!-- ═══════════════════════════════════════════════
-       RIGHT WHEEL
-       ═══════════════════════════════════════════════ -->
   <link name="right_wheel">
     <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
         <cylinder radius="${wheel_r}" length="${wheel_t}"/>
       </geometry>
-      <material name="tire_black"/>
+      <material name="tire_black">
+        <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
     </visual>
     <collision>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
         <cylinder radius="${wheel_r}" length="${wheel_t}"/>
       </geometry>
@@ -173,16 +176,24 @@
     </inertial>
   </link>
 
-  <joint name="right_wheel_joint" type="continuous">
+<joint name="right_wheel_joint" type="continuous">
     <parent link="base_link"/>
-    <child  link="right_wheel"/>
+    <child link="right_wheel"/>
     <origin xyz="0 ${-wheel_sep/2} ${-base_h/2+wheel_r}" rpy="${pi/2} 0 0"/>
-    <axis xyz="0 0 -1"/>
+    <axis xyz="0 1 0"/>
     <dynamics damping="0.1" friction="0.1"/>
   </joint>
 
   <!-- ═══════════════════════════════════════════════
-       CASTER WHEEL
+       CASTER
+       Z = -(base_h/2) drops to bottom of base_link
+       Then caster_r raises it so bottom touches ground
+       But base_link center is at wheel_r so:
+       caster bottom = wheel_r - base_h/2 + caster_r
+       This should equal 0 (ground level)
+       wheel_r=0.0425, base_h/2=0.065, caster_r=0.015
+       0.0425 - 0.065 + 0.015 = -0.0075 (slightly above)
+       Use -base_h/2 + caster_r to get close enough
        ═══════════════════════════════════════════════ -->
   <link name="caster_wheel">
     <visual>
@@ -206,12 +217,9 @@
   <joint name="caster_joint" type="fixed">
     <parent link="base_link"/>
     <child  link="caster_wheel"/>
-    <origin xyz="${-(base_l/2-0.04)} 0 ${-base_h/2+caster_r}" rpy="0 0 0"/>
+    <origin xyz="${-(base_l/2-0.04)} 0 ${-(base_h/2-caster_r)}" rpy="0 0 0"/>
   </joint>
 
-  <!-- ═══════════════════════════════════════════════
-       LIDAR LINK
-       ═══════════════════════════════════════════════ -->
   <link name="lidar_link">
     <visual>
       <geometry>
@@ -239,9 +247,6 @@
     <origin xyz="0.0 0.0 ${base_h/2+0.04}" rpy="0 0 0"/>
   </joint>
 
-  <!-- ═══════════════════════════════════════════════
-       IMU LINK
-       ═══════════════════════════════════════════════ -->
   <link name="imu_link">
     <inertial>
       <mass value="0.01"/>
@@ -256,9 +261,6 @@
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
 
-  <!-- ═══════════════════════════════════════════════
-       CAMERA LINK
-       ═══════════════════════════════════════════════ -->
   <link name="camera_link">
     <visual>
       <geometry><box size="0.02 0.08 0.02"/></geometry>
@@ -290,9 +292,6 @@
     <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
   </joint>
 
-  <!-- ═══════════════════════════════════════════════
-       GAZEBO CONTACT PROPERTIES
-       ═══════════════════════════════════════════════ -->
   <gazebo reference="caster_wheel">
     <mu1>0.0</mu1>
     <mu2>0.0</mu2>
@@ -314,9 +313,6 @@
     <kd>100.0</kd>
   </gazebo>
 
-  <!-- ═══════════════════════════════════════════════
-       LIDAR SENSOR
-       ═══════════════════════════════════════════════ -->
   <gazebo reference="lidar_link">
     <sensor name="lidar" type="gpu_lidar">
       <always_on>true</always_on>
@@ -347,30 +343,32 @@
     </sensor>
   </gazebo>
 
-  <!-- ═══════════════════════════════════════════════
-       DIFF DRIVE PLUGIN
-       child_frame_id = base_link (no base_footprint)
-       ═══════════════════════════════════════════════ -->
-  <gazebo>
-    <plugin filename="gz-sim-diff-drive-system"
-            name="gz::sim::systems::DiffDrive">
-      <left_joint>left_wheel_joint</left_joint>
-      <right_joint>right_wheel_joint</right_joint>
-      <wheel_separation>${wheel_sep}</wheel_separation>
-      <wheel_radius>${wheel_r}</wheel_radius>
-      <odom_publish_frequency>10</odom_publish_frequency>
-      <topic>cmd_vel</topic>
-      <odom_topic>odom</odom_topic>
-      <tf_topic>/tf</tf_topic>
-      <frame_id>odom</frame_id>
-      <child_frame_id>base_link</child_frame_id>
-      <max_linear_acceleration>1.0</max_linear_acceleration>
-    </plugin>
+<gazebo>
+  <plugin filename="gz-sim-diff-drive-system"
+          name="gz::sim::systems::DiffDrive">
 
-    <plugin filename="gz-sim-joint-state-publisher-system"
-            name="gz::sim::systems::JointStatePublisher">
-      <topic>joint_states</topic>
-    </plugin>
-  </gazebo>
+    <left_joint>left_wheel_joint</left_joint>
+    <right_joint>right_wheel_joint</right_joint>
+
+    <wheel_separation>${wheel_sep}</wheel_separation>
+    <wheel_radius>${wheel_r}</wheel_radius>
+
+    <topic>/cmd_vel</topic>
+
+    <odom_topic>odom</odom_topic>
+    <tf_topic>/tf</tf_topic>
+
+    <frame_id>odom</frame_id>
+    <child_frame_id>base_footprint</child_frame_id>
+
+    <odom_publish_frequency>30</odom_publish_frequency>
+
+    <max_linear_velocity>1.0</max_linear_velocity>
+    <max_angular_velocity>1.5</max_angular_velocity>
+    <max_linear_acceleration>1.0</max_linear_acceleration>
+    <max_angular_acceleration>1.5</max_angular_acceleration>
+
+  </plugin>
+</gazebo>
 
 </robot>
