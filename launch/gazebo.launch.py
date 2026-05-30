@@ -38,13 +38,7 @@ def generate_launch_description():
         }]
     )
 
-    joint_state_publisher = Node(
-    package='joint_state_publisher',
-    executable='joint_state_publisher',
-    parameters=[{
-        'use_sim_time': True
-    }]
-)
+
 
 
     # base_footprint -> base_link
@@ -55,7 +49,7 @@ def generate_launch_description():
         arguments=[
             '--x', '0',
             '--y', '0',
-            '--z', '0.0425',
+            '--z', '0.1075',
             '--roll', '0',
             '--pitch', '0',
             '--yaw', '0',
@@ -153,7 +147,6 @@ def generate_launch_description():
     return LaunchDescription([
 
         robot_state_publisher,
-        joint_state_publisher,
         static_tf,
         gazebo,
         spawn_robot,

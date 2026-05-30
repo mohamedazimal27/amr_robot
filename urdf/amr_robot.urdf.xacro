@@ -146,8 +146,8 @@
 <joint name="left_wheel_joint" type="continuous">
     <parent link="base_link"/>
     <child link="left_wheel"/>
-    <origin xyz="0 ${wheel_sep/2} ${-base_h/2+wheel_r}" rpy="${pi/2} 0 0"/>
-    <axis xyz="0 1 0"/>
+    <origin xyz="0 ${wheel_sep/2} ${-base_h/2}" rpy="${pi/2} 0 0"/>
+    <axis xyz="0 0 -1"/>
     <dynamics damping="0.1" friction="0.1"/>
   </joint>
 
@@ -179,8 +179,8 @@
 <joint name="right_wheel_joint" type="continuous">
     <parent link="base_link"/>
     <child link="right_wheel"/>
-    <origin xyz="0 ${-wheel_sep/2} ${-base_h/2+wheel_r}" rpy="${pi/2} 0 0"/>
-    <axis xyz="0 1 0"/>
+    <origin xyz="0 ${-wheel_sep/2} ${-base_h/2}" rpy="${pi/2} 0 0"/>
+    <axis xyz="0 0 -1"/>
     <dynamics damping="0.1" friction="0.1"/>
   </joint>
 
@@ -195,7 +195,8 @@
        0.0425 - 0.065 + 0.015 = -0.0075 (slightly above)
        Use -base_h/2 + caster_r to get close enough
        ═══════════════════════════════════════════════ -->
-  <link name="caster_wheel">
+  <!-- REAR CASTER -->
+  <link name="rear_caster_wheel">
     <visual>
       <geometry><sphere radius="${caster_r}"/></geometry>
       <material name="light_gray">
@@ -214,10 +215,36 @@
     </inertial>
   </link>
 
-  <joint name="caster_joint" type="fixed">
+  <joint name="rear_caster_joint" type="fixed">
     <parent link="base_link"/>
-    <child  link="caster_wheel"/>
-    <origin xyz="${-(base_l/2-0.04)} 0 ${-(base_h/2-caster_r)}" rpy="0 0 0"/>
+    <child  link="rear_caster_wheel"/>
+    <origin xyz="${-(base_l/2-0.04)} 0 ${-base_h/2 - wheel_r + caster_r}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- FRONT CASTER -->
+  <link name="front_caster_wheel">
+    <visual>
+      <geometry><sphere radius="${caster_r}"/></geometry>
+      <material name="light_gray">
+        <color rgba="0.6 0.6 0.6 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry><sphere radius="${caster_r}"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.05"/>
+      <inertia
+        ixx="0.000025" ixy="0" ixz="0"
+        iyy="0.000025" iyz="0"
+        izz="0.000025"/>
+    </inertial>
+  </link>
+
+  <joint name="front_caster_joint" type="fixed">
+    <parent link="base_link"/>
+    <child  link="front_caster_wheel"/>
+    <origin xyz="${(base_l/2-0.04)} 0 ${-base_h/2 - wheel_r + caster_r}" rpy="0 0 0"/>
   </joint>
 
   <link name="lidar_link">
@@ -292,7 +319,14 @@
     <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
   </joint>
 
-  <gazebo reference="caster_wheel">
+  <gazebo reference="rear_caster_wheel">
+    <mu1>0.0</mu1>
+    <mu2>0.0</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+  </gazebo>
+
+  <gazebo reference="front_caster_wheel">
     <mu1>0.0</mu1>
     <mu2>0.0</mu2>
     <kp>1000000.0</kp>
@@ -368,6 +402,13 @@
     <max_linear_acceleration>1.0</max_linear_acceleration>
     <max_angular_acceleration>1.5</max_angular_acceleration>
 
+  </plugin>
+
+  <plugin filename="gz-sim-joint-state-publisher-system"
+          name="gz::sim::systems::JointStatePublisher">
+    <topic>joint_states</topic>
+    <joint_name>left_wheel_joint</joint_name>
+    <joint_name>right_wheel_joint</joint_name>
   </plugin>
 </gazebo>
 
