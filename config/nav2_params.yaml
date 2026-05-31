@@ -127,7 +127,7 @@ controller_server:
       vx_samples: 20
       vy_samples: 5
       vtheta_samples: 20
-      sim_time: 1.7
+      sim_time: 1.3
       linear_granularity: 0.05
       angular_granularity: 0.025
       transform_tolerance: 0.2
@@ -136,7 +136,7 @@ controller_server:
       short_circuit_trajectory_evaluation: True
       stateful: True
       critics: ["ObstacleFootprint", "PathAlign", "GoalAlign", "PathDist", "GoalDist"]
-      ObstacleFootprint.scale: 0.02
+      ObstacleFootprint.scale: 1.5
       PathAlign.scale: 32.0
       PathAlign.forward_point_distance: 0.325
       GoalAlign.scale: 24.0
@@ -157,7 +157,7 @@ local_costmap:
       width: 3
       height: 3
       resolution: 0.05
-      robot_radius: 0.25
+      robot_radius: 0.20
       plugins: ["obstacle_layer", "inflation_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
@@ -177,7 +177,7 @@ local_costmap:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: True
         inflation_radius: 0.55
-        cost_scaling_factor: 10.0
+        cost_scaling_factor: 5.0
       always_send_full_costmap: True
 
 planner_server:
@@ -200,7 +200,7 @@ global_costmap:
       robot_base_frame: base_footprint
       use_sim_time: True
       transform_tolerance: 5.0
-      robot_radius: 0.25
+      robot_radius: 0.20
       resolution: 0.05
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       static_layer:
@@ -225,8 +225,8 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: True
-        inflation_radius: 0.55
-        cost_scaling_factor: 10.0
+        inflation_radius: 0.65
+        cost_scaling_factor: 5.0
       always_send_full_costmap: True
 
 map_server:
