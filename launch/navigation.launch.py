@@ -2,72 +2,37 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, SetEnvironmentVariable
+from launch.actions import DeclareLaunchArgument, SetEnvironmentVariable, OpaqueFunction
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import Node
-from launch_ros.actions import SetParameter
+from launch_ros.actions import Node, SetParameter
 
-def generate_launch_description():
+def launch_setup(context, *args, **kwargs):
     # 1. Paths and Directories
     pkg_share = get_package_share_directory('amr_robot')
 
-    default_map_path = os.path.join(pkg_share, 'maps', 'demo_factory.yaml')
-    default_params_path = os.path.join(pkg_share, 'config', 'nav2_params.yaml')
-    default_rviz_config_path = os.path.join(pkg_share, 'rviz', 'nav2.rviz')
+    # Resolve map parameter
+    map_input = LaunchConfiguration('map').perform(context)
+    if not os.path.isabs(map_input):
+        map_name = map_input
+        if not map_name.endswith('.yaml'):
+            map_name += '.yaml'
+        
+        potential_path = os.path.join(pkg_share, 'maps', map_name)
+        if os.path.exists(potential_path):
+            map_path = potential_path
+        else:
+            map_path = os.path.abspath(map_input)
+    else:
+        map_path = map_input
 
-    # 2. Launch Configurations
-    map_yaml_file = LaunchConfiguration('map')
     params_file = LaunchConfiguration('params_file')
     use_sim_time = LaunchConfiguration('use_sim_time')
     autostart = LaunchConfiguration('autostart')
     use_rviz = LaunchConfiguration('use_rviz')
     rviz_config = LaunchConfiguration('rviz_config')
 
-    # 3. Environment Variables
-    # Force stdout buffering to ensure logs appear sequentially
-    stdout_linebuf_envvar = SetEnvironmentVariable(
-        'RCUTILS_LOGGING_BUFFERED_STREAM', '1'
-    )
-
-    # 4. Declare Launch Arguments
-    declare_map_yaml_cmd = DeclareLaunchArgument(
-        'map',
-        default_value=default_map_path,
-        description='Full path to occupancy grid map yaml file to load'
-    )
-
-    declare_params_file_cmd = DeclareLaunchArgument(
-        'params_file',
-        default_value=default_params_path,
-        description='Full path to the ROS2 parameters file to use for all launched nodes'
-    )
-
-    declare_use_sim_time_cmd = DeclareLaunchArgument(
-        'use_sim_time',
-        default_value='true',
-        description='Use simulation (Gazebo) clock if true'
-    )
-
-    declare_autostart_cmd = DeclareLaunchArgument(
-        'autostart',
-        default_value='true',
-        description='Automatically startup the nav2 stack'
-    )
-
-    declare_use_rviz_cmd = DeclareLaunchArgument(
-        'use_rviz',
-        default_value='true',
-        description='Whether to start RViz'
-    )
-
-    declare_rviz_config_file_cmd = DeclareLaunchArgument(
-        'rviz_config',
-        default_value=default_rviz_config_path,
-        description='Full path to the RViz config file to use'
-    )
-
-    # 5. Lifecycle Nodes configuration
+    # Lifecycle Nodes configuration
     # The nodes to be managed by the lifecycle manager
     lifecycle_nodes = [
         'map_server',
@@ -81,15 +46,13 @@ def generate_launch_description():
     # Standard tf/tf_static topic remappings
     remappings = [('/tf', 'tf'), ('/tf_static', 'tf_static')]
 
-    # 6. Spawning Individual Navigation Nodes
-    
     # Map Server Node
     map_server_node = Node(
         package='nav2_map_server',
         executable='map_server',
         name='map_server',
         output='screen',
-        parameters=[params_file, {'yaml_filename': map_yaml_file}],
+        parameters=[params_file, {'yaml_filename': map_path}],
         remappings=remappings
     )
 
@@ -168,7 +131,67 @@ def generate_launch_description():
         output='screen'
     )
 
-    # 7. Create Launch Description and return actions
+    return [
+        SetParameter('use_sim_time', use_sim_time),
+        map_server_node,
+        amcl_node,
+        planner_server_node,
+        controller_server_node,
+        behavior_server_node,
+        bt_navigator_node,
+        lifecycle_manager_node,
+        rviz_node
+    ]
+
+def generate_launch_description():
+    pkg_share = get_package_share_directory('amr_robot')
+
+    default_params_path = os.path.join(pkg_share, 'config', 'nav2_params.yaml')
+    default_rviz_config_path = os.path.join(pkg_share, 'rviz', 'nav2.rviz')
+
+    # Force stdout buffering to ensure logs appear sequentially
+    stdout_linebuf_envvar = SetEnvironmentVariable(
+        'RCUTILS_LOGGING_BUFFERED_STREAM', '1'
+    )
+
+    # Declare Launch Arguments
+    declare_map_yaml_cmd = DeclareLaunchArgument(
+        'map',
+        default_value='demo_factory',
+        description='Full path to occupancy grid map yaml file OR map name (e.g. demo_factory, opil_factory)'
+    )
+
+    declare_params_file_cmd = DeclareLaunchArgument(
+        'params_file',
+        default_value=default_params_path,
+        description='Full path to the ROS2 parameters file to use for all launched nodes'
+    )
+
+    declare_use_sim_time_cmd = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='true',
+        description='Use simulation (Gazebo) clock if true'
+    )
+
+    declare_autostart_cmd = DeclareLaunchArgument(
+        'autostart',
+        default_value='true',
+        description='Automatically startup the nav2 stack'
+    )
+
+    declare_use_rviz_cmd = DeclareLaunchArgument(
+        'use_rviz',
+        default_value='true',
+        description='Whether to start RViz'
+    )
+
+    declare_rviz_config_file_cmd = DeclareLaunchArgument(
+        'rviz_config',
+        default_value=default_rviz_config_path,
+        description='Full path to the RViz config file to use'
+    )
+
+    # Create Launch Description and return actions
     ld = LaunchDescription()
 
     # Set environment variables
@@ -182,21 +205,8 @@ def generate_launch_description():
     ld.add_action(declare_use_rviz_cmd)
     ld.add_action(declare_rviz_config_file_cmd)
 
-    # Set global use_sim_time parameter for all spawned nodes in this launch
-    ld.add_action(SetParameter('use_sim_time', use_sim_time))
-
-    # Add all modular navigation lifecycle nodes
-    ld.add_action(map_server_node)
-    ld.add_action(amcl_node)
-    ld.add_action(planner_server_node)
-    ld.add_action(controller_server_node)
-    ld.add_action(behavior_server_node)
-    ld.add_action(bt_navigator_node)
-
-    # Add the Lifecycle Manager
-    ld.add_action(lifecycle_manager_node)
-
-    # Add the RViz2 Node
-    ld.add_action(rviz_node)
+    # Add the OpaqueFunction setup
+    ld.add_action(OpaqueFunction(function=launch_setup))
 
     return ld
+
