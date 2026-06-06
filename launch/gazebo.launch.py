@@ -15,6 +15,12 @@ def launch_setup(context, *args, **kwargs):
     
     pkg_path = get_package_share_directory('amr_robot')
 
+    models_path = os.path.join(pkg_path, 'models')
+    if 'GZ_SIM_RESOURCE_PATH' in os.environ:
+        os.environ['GZ_SIM_RESOURCE_PATH'] += ':' + models_path
+    else:
+        os.environ['GZ_SIM_RESOURCE_PATH'] = models_path
+
     xacro_file = os.path.join(
         pkg_path,
         'urdf',
@@ -56,6 +62,21 @@ def launch_setup(context, *args, **kwargs):
         y_spawn = "2.0"
         z_spawn = "0.15"
         yaw_spawn = "0.0"
+
+    # Override spawn coordinates if specified via launch configurations
+    x_val = LaunchConfiguration('x').perform(context)
+    y_val = LaunchConfiguration('y').perform(context)
+    z_val = LaunchConfiguration('z').perform(context)
+    yaw_val = LaunchConfiguration('yaw').perform(context)
+    
+    if x_val != "":
+        x_spawn = x_val
+    if y_val != "":
+        y_spawn = y_val
+    if z_val != "":
+        z_spawn = z_val
+    if yaw_val != "":
+        yaw_spawn = yaw_val
 
     # Robot state publisher
     robot_state_publisher = Node(
@@ -140,7 +161,9 @@ def launch_setup(context, *args, **kwargs):
                     '/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
                     '/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V',
                     '/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model',
-                    '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'
+                    '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
+                    '/camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
+                    '/camera/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo'
                 ],
                 parameters=[{
                     'use_sim_time': True
@@ -165,6 +188,26 @@ def generate_launch_description():
             'world',
             default_value='factory',
             description='World to load: factory, opil_factory, or warehouse'
+        ),
+        DeclareLaunchArgument(
+            'x',
+            default_value='',
+            description='Initial x spawn coordinate (leave empty for world default)'
+        ),
+        DeclareLaunchArgument(
+            'y',
+            default_value='',
+            description='Initial y spawn coordinate (leave empty for world default)'
+        ),
+        DeclareLaunchArgument(
+            'z',
+            default_value='',
+            description='Initial z spawn coordinate (leave empty for world default)'
+        ),
+        DeclareLaunchArgument(
+            'yaw',
+            default_value='',
+            description='Initial yaw spawn orientation (leave empty for world default)'
         ),
         OpaqueFunction(function=launch_setup)
     ])

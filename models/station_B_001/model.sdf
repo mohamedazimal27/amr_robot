@@ -1,0 +1,54 @@
+<?xml version="1.0" ?>
+<sdf version="1.8">
+  <model name="station_B_001">
+    <static>true</static>
+    <link name="link">
+      <!-- Support Pillar -->
+      <collision name="pillar_collision">
+        <pose>0 0 0.4 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.1 0.1 0.8</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="pillar_visual">
+        <pose>0 0 0.4 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.1 0.1 0.8</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.6 0.6 0.6 1</ambient>
+          <diffuse>0.6 0.6 0.6 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- QR Code Plate -->
+      <collision name="qr_collision">
+        <pose>0.055 0 0.3 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.01 0.2 0.2</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="qr_visual">
+        <pose>0.055 0 0.3 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.01 0.2 0.2</size>
+          </box>
+        </geometry>
+        <material>
+          <pbr>
+            <metal>
+              <albedo_map>materials/textures/station_B_001.png</albedo_map>
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

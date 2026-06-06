@@ -172,5 +172,29 @@
       </link>
     </model>
 
+    <include>
+      <uri>model://station_A_001</uri>
+      <name>station_A_001</name>
+      <pose>-4.88 2.0 0.0 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://station_A_002</uri>
+      <name>station_A_002</name>
+      <pose>-4.88 -2.0 0.0 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://station_B_001</uri>
+      <name>station_B_001</name>
+      <pose>4.88 2.0 0.0 0 0 3.14159</pose>
+    </include>
+
+    <include>
+      <uri>model://station_B_002</uri>
+      <name>station_B_002</name>
+      <pose>4.88 -2.0 0.0 0 0 3.14159</pose>
+    </include>
+
   </world>
 </sdf>
