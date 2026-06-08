@@ -16,7 +16,7 @@ def generate_station_model(station_id, output_dir):
     )
     qr.add_data(station_id)
     qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
+    img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
     
     img_path = os.path.join(textures_dir, f"{station_id}.png")
     img.save(img_path)
@@ -88,9 +88,13 @@ def generate_station_model(station_id, output_dir):
           </box>
         </geometry>
         <material>
+          <ambient>1 1 1 1</ambient>
+          <diffuse>1 1 1 1</diffuse>
           <pbr>
             <metal>
-              <albedo_map>materials/textures/{station_id}.png</albedo_map>
+              <albedo_map>model://{station_id}/materials/textures/{station_id}.png</albedo_map>
+              <roughness>1.0</roughness>
+              <metalness>0.0</metalness>
             </metal>
           </pbr>
         </material>

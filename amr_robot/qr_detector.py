@@ -77,17 +77,15 @@ class QrDetector(Node):
         height, width, _ = cv_img.shape
         cx_img, cy_img = width / 2.0, height / 2.0
         
-        # Center gate bounding box limits
+        # Center gate bounding box limits (horizontal only to allow for camera pitch and varying distances)
         dx = width * self.gate_tolerance
-        dy = height * self.gate_tolerance
         x_min, x_max = cx_img - dx, cx_img + dx
-        y_min, y_max = cy_img - dy, cy_img + dy
 
-        # Draw center gate rectangle (light blue/cyan) for visual aid
+        # Draw center gate column (light blue/cyan) for visual aid
         cv2.rectangle(
             cv_img, 
-            (int(x_min), int(y_min)), 
-            (int(x_max), int(y_max)), 
+            (int(x_min), 0), 
+            (int(x_max), height), 
             (255, 255, 0), 
             1
         )
@@ -120,7 +118,7 @@ class QrDetector(Node):
 
                 # Gate checks
                 vel_gate = self.current_linear_vel < self.vel_threshold
-                center_gate = (x_min <= centroid_x <= x_max) and (y_min <= centroid_y <= y_max)
+                center_gate = (x_min <= centroid_x <= x_max)
 
                 # Build status text
                 status_parts = []

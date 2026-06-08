@@ -163,7 +163,12 @@ def launch_setup(context, *args, **kwargs):
                     '/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model',
                     '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
                     '/camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
-                    '/camera/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo'
+                    '/camera/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+                    '/world/default/pose/info@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V',
+                    '/model/amr_robot/pose@geometry_msgs/msg/PoseStamped[gz.msgs.Pose'
+                ],
+                remappings=[
+                    ('/model/amr_robot/pose', '/ground_truth')
                 ],
                 parameters=[{
                     'use_sim_time': True
