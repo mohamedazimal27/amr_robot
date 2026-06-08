@@ -96,9 +96,9 @@ class MissionManager:
         self.node.get_logger().info("Nav2 is active!")
 
         # 2. Set Initial Pose (from spawn location in opil_factory)
-        initial_pose = create_pose_stamped(self.navigator, 4.0, 4.0, 0.0)
-        self.navigator.setInitialPose(initial_pose)
-        self.node.get_logger().info("Set initial pose to (4.0, 4.0, 0.0)")
+        # initial_pose = create_pose_stamped(self.navigator, 2.0, 2.0, 0.5)
+        # self.navigator.setInitialPose(initial_pose)
+        # self.node.get_logger().info("Set initial pose to (2.0, 2.0, 0.5)")
 
         # Allow time for localization to initialize
         time.sleep(2.0)
