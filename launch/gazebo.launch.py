@@ -48,10 +48,10 @@ def launch_setup(context, *args, **kwargs):
             world_file = os.path.join(opil_pkg, 'worlds', 'opil_factory.world')
         except Exception:
             world_file = os.path.join(pkg_path, 'worlds', 'opil_factory.world')
-        x_spawn = "4.0"
-        y_spawn = "4.0"
+        x_spawn = "4.369776"
+        y_spawn = "3.527001"
         z_spawn = "0.15"
-        yaw_spawn = "0.0"
+        yaw_spawn = "-1.87548"
     elif world_name == 'warehouse':
         try:
             wh_pkg = get_package_share_directory('warehouse_world')
@@ -68,6 +68,7 @@ def launch_setup(context, *args, **kwargs):
     y_val = LaunchConfiguration('y').perform(context)
     z_val = LaunchConfiguration('z').perform(context)
     yaw_val = LaunchConfiguration('yaw').perform(context)
+    headless_val = LaunchConfiguration('headless').perform(context)
     
     if x_val != "":
         x_spawn = x_val
@@ -77,6 +78,10 @@ def launch_setup(context, *args, **kwargs):
         z_spawn = z_val
     if yaw_val != "":
         yaw_spawn = yaw_val
+
+    gz_args = f'-r {world_file}'
+    if headless_val.lower() == 'true':
+        gz_args = f'-r -s {world_file}'
 
     # Robot state publisher
     robot_state_publisher = Node(
@@ -119,7 +124,7 @@ def launch_setup(context, *args, **kwargs):
             )
         ]),
         launch_arguments={
-            'gz_args': f'-r {world_file}',
+            'gz_args': gz_args,
             'on_exit_shutdown': 'true'
         }.items()
     )
@@ -213,6 +218,11 @@ def generate_launch_description():
             'yaw',
             default_value='',
             description='Initial yaw spawn orientation (leave empty for world default)'
+        ),
+        DeclareLaunchArgument(
+            'headless',
+            default_value='false',
+            description='Run Gazebo in headless mode (server only)'
         ),
         OpaqueFunction(function=launch_setup)
     ])

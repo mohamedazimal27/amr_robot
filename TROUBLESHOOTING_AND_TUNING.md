@@ -242,3 +242,24 @@ graph TD
    Ensure a lifecycle manager node is active to transition nodes from `unconfigured` to `active`.
 4. **Tune Local Planner Critics Iteratively**: The DWB local planner relies on a delicate balance of critic weights. Never let path-following weights completely overpower obstacle avoidance.
 5. **Manage Stdin/Stdout Buffering in Launch**: In custom ROS 2 Python launch scripts, always use standard stdout buffering environment overrides to prevent logs from interleaving or freezing in the terminal output stream.
+
+
+
+pkill -f gz
+pkill -f slam_toolbox
+pkill -f rviz2
+pkill -f teleop
+sleep 3
+
+
+# Terminal 1
+ros2 launch amr_robot gazebo.launch.py world:=opil_factory
+# Terminal 2
+ros2 launch amr_robot navigation.launch.py map:=opil_factory
+# → Do 2D Pose Estimate in RViz to align laser scan with map
+# Terminal 3
+ros2 launch amr_robot mission_nodes.launch.py
+# → It will print the computed map waypoints in the terminal logs
+
+
+cd ~/ros2_ws && colcon build --packages-select amr_robot

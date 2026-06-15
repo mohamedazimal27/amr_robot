@@ -7,6 +7,7 @@ from nav_msgs.msg import Odometry
 from cv_bridge import CvBridge
 import cv2
 import numpy as np
+import json
 
 class QrDetector(Node):
     def __init__(self):
@@ -47,6 +48,7 @@ class QrDetector(Node):
 
         # Publishers
         self.qr_pub = self.create_publisher(String, '/detected_qr', 10)
+        self.qr_raw_pub = self.create_publisher(String, '/detected_qr_raw', 10)
         self.annotated_img_pub = self.create_publisher(Image, '/qr_detection_image', 10)
 
         # Timer for throttled processing
@@ -98,6 +100,8 @@ class QrDetector(Node):
         color = (0, 255, 0) if self.current_linear_vel < self.vel_threshold else (0, 0, 255)
         cv2.putText(cv_img, vel_text, (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
 
+        raw_msg_data = {"detected": False}
+
         if retval:
             for i in range(len(decoded_info)):
                 info = decoded_info[i]
@@ -115,6 +119,14 @@ class QrDetector(Node):
 
                 # Draw centroid marker
                 cv2.circle(cv_img, (int(centroid_x), int(centroid_y)), 5, (0, 0, 255), -1)
+
+                # Calculate normalized offset from center: -1.0 to 1.0
+                offset = (centroid_x - cx_img) / cx_img
+                raw_msg_data = {
+                    "detected": True,
+                    "info": info,
+                    "offset": float(offset)
+                }
 
                 # Gate checks
                 vel_gate = self.current_linear_vel < self.vel_threshold
@@ -160,6 +172,11 @@ class QrDetector(Node):
                         (0, 0, 255), 
                         1
                     )
+
+        # Publish raw QR info JSON for alignment control
+        raw_msg = String()
+        raw_msg.data = json.dumps(raw_msg_data)
+        self.qr_raw_pub.publish(raw_msg)
 
         # Publish annotated image for visualization
         try:

@@ -1,0 +1,59 @@
+{
+  "layout": {
+    "direction": "row",
+    "first": "3D!3d_panel",
+    "second": {
+      "direction": "column",
+      "first": "Image!camera_panel",
+      "second": "RawMessages!qr_data_panel",
+      "splitPercentage": 50
+    },
+    "splitPercentage": 60
+  },
+  "configById": {
+    "3D!3d_panel": {
+      "cameraState": {
+        "perspective": true,
+        "distance": 8.5,
+        "phi": 60,
+        "theta": -45,
+        "target": [9.0, 11.0, 0.0]
+      },
+      "followMode": "follow-pose",
+      "followTfFrame": "base_footprint",
+      "scene": {
+        "transforms": {
+          "showLabels": false
+        }
+      },
+      "layers": {
+        "/map": {
+          "visible": true,
+          "colorMode": "map"
+        },
+        "/scan": {
+          "visible": true,
+          "color": "#ff0000"
+        },
+        "/tf": {
+          "visible": true
+        }
+      }
+    },
+    "Image!camera_panel": {
+      "topicPath": "/qr_detection_image",
+      "imageMode": "fit",
+      "zoom": 1.0
+    },
+    "RawMessages!qr_data_panel": {
+      "topicPath": "/detected_qr_raw",
+      "diffEnabled": false,
+      "showFullMessageForPath": true
+    }
+  },
+  "globalVariables": {},
+  "userNodes": {},
+  "playbackConfig": {
+    "speed": 1
+  }
+}

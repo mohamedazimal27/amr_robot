@@ -1,0 +1,14 @@
+foxglove_bridge:
+  ros__parameters:
+    use_sim_time: true
+    qos_overrides:
+      /map:
+        subscriber:
+          durability: "transient_local"
+          reliability: "reliable"
+          depth: 1
+      /tf_static:
+        subscriber:
+          durability: "transient_local"
+          reliability: "reliable"
+          depth: 100

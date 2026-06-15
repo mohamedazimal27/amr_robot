@@ -32,6 +32,28 @@ def launch_setup(context, *args, **kwargs):
     use_rviz = LaunchConfiguration('use_rviz')
     rviz_config = LaunchConfiguration('rviz_config')
 
+    # Determine AMCL initial pose based on the map file loaded
+    x_init = 0.0
+    y_init = -2.5
+    yaw_init = 1.5708
+
+    map_input_lower = map_input.lower()
+    print(f"[DEBUG] map_input: '{map_input}'", flush=True)
+    print(f"[DEBUG] map_input_lower: '{map_input_lower}'", flush=True)
+    if 'opil_factory' in map_input_lower or 'factory_map' in map_input_lower:
+        # Derived from ground-truth: user measured station A at map (9.66, 10.197)
+        # which gives Gazebo->Map offset of dx=14.54, dy=8.197
+        # Robot spawns at Gazebo (4.37, 3.53) => map (18.91, 11.724)
+        x_init = 18.91
+        y_init = 11.724
+        yaw_init = -1.87548
+    elif 'warehouse' in map_input_lower:
+        x_init = 2.0
+        y_init = 2.0
+        yaw_init = 0.0
+
+    print(f"[DEBUG] Resolved initial pose: x={x_init}, y={y_init}, yaw={yaw_init}", flush=True)
+
     # Lifecycle Nodes configuration
     # The nodes to be managed by the lifecycle manager
     lifecycle_nodes = [
@@ -62,7 +84,15 @@ def launch_setup(context, *args, **kwargs):
         executable='amcl',
         name='amcl',
         output='screen',
-        parameters=[params_file],
+        parameters=[params_file, {
+            'initial_pose': {
+                'x': x_init,
+                'y': y_init,
+                'z': 0.0,
+                'yaw': yaw_init
+            },
+            'set_initial_pose': True
+        }],
         remappings=remappings
     )
 
